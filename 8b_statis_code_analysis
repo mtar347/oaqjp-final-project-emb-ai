@@ -1,5 +1,5 @@
-************* Module server
-server.py:42:0: C0304: Final newline missing (missing-final-newline)
+theia@theiadocker-mtar347:/home/project/final_project$ pylint server.py
 
-------------------------------------------------------------------
-Your code has been rated at 9.29/10 (previous run: 2.67/10, +6.62)
+-------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 9.29/10, +0.71)
+
