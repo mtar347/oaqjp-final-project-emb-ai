@@ -1,19 +1,56 @@
 import requests
 import json
 
-def emotion_detector(text_to_analyse):
-    url = "https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict"
+def emotion_detector(text_to_analyse): 
+    if not text_to_analyse.strip():
+        return {
+            "anger": None,
+            "disgust": None,
+            "fear": None,
+            "joy": None,
+            "sadness": None,
+            "dominant emotion": None
+        }
 
-    myobj = { "raw_document": { "text": text_to_analyse } }
+    URL= 'https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
+    Headers= {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"}
+    payload= { "raw_document": { "text": text_to_analyse } }
 
-    header = {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"}
+    response = requests.post(URL, headers=Headers, json=payload)
 
-    response = requests.post(url, json=myobj, headers=header)
+    if response.status_code == 400:
+        return {
+            "anger": None,
+            "disgust": None,
+            "fear": None,
+            "joy": None,
+            "sadness": None,
+            "dominant emotion": None
+        }
 
+    elif response.status_code == 200:
+        response_dict = response.json()
+        emotions = response_dict.get("emotionPredictions", [{}])[0].get("emotion", {})
+        if not emotions:
+            return {"error": "No emotions detected"}
 
-    formatted_response = json.loads(response.text)
+        anger = emotions.get("anger", 0)
+        disgust = emotions.get("disgust", 0)
+        fear = emotions.get("fear", 0)
+        joy = emotions.get("joy", 0)
+        sadness = emotions.get("sadness", 0)
 
-    emotions = formatted_response["emotionPredictions"][0]["emotion"]
+        dominant_emotion = max(emotions, key=emotions.get)
+        
+        result = {
+            "anger": anger,
+            "disgust": disgust,
+            "fear": fear,
+            "joy": joy,
+            "sadness": sadness,
+            "dominant emotion": dominant_emotion
+        }
 
-
-    return {**emotions, **{"dominant_emotion": max(emotions, key=emotions.get)}}
+        return result
+    else:
+        return {"error": f"Request failed with status {response.status_code}"}
